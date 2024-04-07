@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
-import * as FileSystem from 'expo-file-system';
+import axios from 'axios';
 
-// Determine the square size based on the screen dimensions
+
 const { width, height } = Dimensions.get('window');
 const squareSize = Math.min(width, height);
 
@@ -22,17 +22,28 @@ export default function App() {
 
   const takePicture = async () => {
     if (camera) {
-      const options = { quality: 0.5, base64: true };
+      const options = { quality: 0.5 }; // Removed base64: true
       const data = await camera.takePictureAsync(options);
-      const savePath = `${FileSystem.documentDirectory}${Date.now()}.jpg`;
-      await FileSystem.writeAsStringAsync(savePath, data.base64, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      console.log('Photo saved at', savePath);
-      setShowCamera(false);
+  
+      console.log(data.uri);
+  
+      const response = await fetch(data.uri);
+      const blob = await response.blob(); // Convert the image to a blob
+  
+      const body = new FormData();
+      body.append('image', blob, 'photo.jpg'); // Append the blob to FormData with a filename
+      body.append('location', JSON.stringify({ latitude: '0', longitude: '0' }));
+  
+      axios.post('http://127.0.0.1:5000/ocr', body, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then(response => console.log(response.data))
+      .catch(error => console.log(error));
     }
   };
-
+  
   if (hasPermission === null) {
     return <View />;
   }
@@ -63,7 +74,7 @@ export default function App() {
   }
 }
 
-// Example of a Flexbox grid for button container
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -82,19 +93,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
-  // Additional styles for hypothetical grid elements if needed
+  
   gridContainer: {
     flex: 1,
-    flexDirection: 'row', // Arrange items in rows
-    flexWrap: 'wrap', // Allow items to wrap to the next line
-    justifyContent: 'space-around', // Distribute space around items
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around', 
   },
   gridItem: {
-    width: '45%', // Approximately half the container width minus padding
-    aspectRatio: 1, // Keep the item square
-    justifyContent: 'center', // Center content vertically
-    alignItems: 'center', // Center content horizontally
-    margin: '2.5%', // Provide some margin
+    width: '45%', 
+    aspectRatio: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    margin: '2.5%', 
   },
   mainContainer: {
     flex: 1,
