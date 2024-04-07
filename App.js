@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
 import LogoPage from './pages/LogoPage';
 import MainPage from './pages/MainPage';
 
@@ -15,5 +16,9 @@ export default function App() {
     return <LogoPage />;
   }
 
-  return <MainPage />;
+  return (
+    <NavigationContainer>
+      <MainPage />
+    </NavigationContainer>
+  );
 }

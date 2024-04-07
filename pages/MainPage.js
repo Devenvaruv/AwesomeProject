@@ -1,21 +1,29 @@
+// Import necessary dependencies
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import { useNavigation } from '@react-navigation/native';
+import DisplayPage from './DisplayPage';
 
+// Get window dimensions
 const { width, height } = Dimensions.get('window');
 const squareSize = Math.min(width, height);
 
-export default function App() {
+export default function MainPage() {
+  // State variables
   const [hasCameraPermission, setHasCameraPermission] = useState(null);
   const [hasLocationPermission, setHasLocationPermission] = useState(null);
   const [camera, setCamera] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [showCamera, setShowCamera] = useState(false);
   const [location, setLocation] = useState(null);
+  const [isLoading, setIsLoading] = useState(false); // New state for loading after POST request
+  const navigation = useNavigation();
 
+  // Effect hook for initializing camera and location permissions
   useEffect(() => {
     (async () => {
       const cameraStatus = await Camera.requestCameraPermissionsAsync();
@@ -29,13 +37,14 @@ export default function App() {
         setLocation(loc);
       }
     })();
-
     // Set showCamera to true after component mounts
     setShowCamera(true);
   }, []);
 
+  // Function to handle taking picture and making POST request
   const takePicture = async () => {
     if (camera && location) {
+      setIsLoading(true); // Set loading state to true before making the POST request
       const options = { quality: 0.5 };
       const data = await camera.takePictureAsync(options);
 
@@ -57,21 +66,26 @@ export default function App() {
       })
       .then(response => {
         console.log(response);
+        setIsLoading(false); // Set loading state to false after receiving the response
+        navigation.navigate('DisplayPage', { data: response.data }); // Navigate to DisplayPage
       })
-      .catch(error => console.log(error));
+      .catch(error => {
+        setIsLoading(false); // Set loading state to false if there's an error
+        console.log(error);
+      });
     }
   };
 
-  if (hasCameraPermission === null || hasLocationPermission === null) {
-    return <View />;
-  }
-  if (hasCameraPermission === false) {
-    return <Text>No access to camera</Text>;
-  }
-  if (hasLocationPermission === false) {
-    return <Text>No access to location</Text>;
+  // Render loading indicator while loading
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
 
+  // Render camera or home page based on showCamera state
   if (showCamera) {
     return (
       <View style={styles.container}>
@@ -95,6 +109,7 @@ export default function App() {
   }
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -116,6 +131,12 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
   },

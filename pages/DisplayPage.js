@@ -6,7 +6,7 @@ export default function DisplayPage(){
     <View style={styles.container}>
       <Text style={styles.header}>Display Page</Text>
       <View style={styles.content}>
-        {/* Add your content here */}
+      <h1>Display Page</h1>
       </View>
     </View>
   );
