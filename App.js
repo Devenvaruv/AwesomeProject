@@ -33,6 +33,23 @@ export default function App() {
     })();
   }, []);
 
+  const fetchOcrData = async (body) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post('http://10.50.72.44:5000/ocr', body, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setResponse(response.data); // Update the state with the response data
+    } catch (error) {
+      console.error(error);
+      setError(error); // Update the state with the error
+    } finally {
+      setIsLoading(false); // Set loading to false regardless of outcome
+    }
+  };
+
   const takePicture = async () => {
     if (camera && location) {
       const options = { quality: 0.5 };
@@ -54,8 +71,7 @@ export default function App() {
       body.append("latitude", location.coords.latitude);
       body.append("longitude", location.coords.longitude);
   
-      
-  
+      // fetchOcrData(body); //
       axios.post('http://10.50.72.44:5000/ocr', body, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -64,11 +80,12 @@ export default function App() {
       .then(response => {
         console.log(response.data);
         setResponse(response.data);
-        setIsLoading(false); // Set loading state to false after receiving the response
+        setPage2(true)
+        // setIsLoading(false); // Set loading state to false after receiving the response
       })
       .catch(error => {
         console.log(error);
-        setIsLoading(false); // Set loading state to false in case of an error
+        // setIsLoading(false); // Set loading state to false in case of an error
       });
     }
   };
@@ -98,9 +115,9 @@ export default function App() {
               <TouchableOpacity
                 style={styles.button}
                 onPress={() => {
-                  // setPage2(true);
-                  // setIsLoading(true); // Set loading state to true before making the API request
                   takePicture();
+                  //setPage2(true);
+                  // setIsLoading(true); // Set loading state to true before making the API request
                 }}
               >
                 <Image source={require('./assets/camera-icon.png')} style={styles.buttonImage} />
@@ -120,7 +137,7 @@ export default function App() {
         ) : (
           <View style={styles.responseContainer}>
             {response ? (
-              <Text style={styles.responseText}>{response}</Text>
+              <Text style={styles.responseText}>{response.llm_response.explain}</Text>
             ) : (
               <Text style={styles.responseText}>No data available</Text>
             )}
