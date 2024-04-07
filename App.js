@@ -14,6 +14,7 @@ export default function App() {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [showCamera, setShowCamera] = useState(false);
   const [location, setLocation] = useState(null);
+  const [page2, setPage2] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -31,12 +32,13 @@ export default function App() {
   }, []);
 
   const takePicture = async () => {
+    setPage2(true);
     if (camera && location) {
       const options = { quality: 0.5 };
       const data = await camera.takePictureAsync(options);
 
       console.log(data);
-      console.log(location.coords.latitude,);
+      console.log(location.coords.latitude);
       console.log(location.coords.longitude);
 
 
@@ -78,20 +80,32 @@ export default function App() {
     return <Text>No access to location</Text>;
   }
 
-  if (showCamera) {
+  if (!page2) {
     return (
       <View style={styles.container}>
         <View style={{ width: squareSize, height: squareSize * 1.2, alignSelf: 'center' }}>
           <Camera style={styles.camera} type={type} ref={ref => setCamera(ref)}>
             <View style={styles.buttonContainer}>
               <Button title="Flip Camera" onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)} />
-              <Button title="Click " onPress={takePicture} />
+              <Button title="Click" onPress={takePicture} />
+              {/* <TouchableOpacity style={styles.button} onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)}>
+                <Image source={require('./assets/flip-camera.png')} style={styles.buttonImage} />
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity style={styles.button} onPress={takePicture}>
+                <Image source={require('./assets/camera-icon.png')} style={styles.buttonImage} />
+              </TouchableOpacity> */}
             </View>
           </Camera>
         </View>
       </View>
     );
-  } else {
+  } else if(page2) {
+    return (
+      <>
+      <h1>"Deven"</h1>
+      </>
+    )
+  }else {
     return (
       <View style={styles.mainContainer}>
         <Text>Welcome to the home page!</Text>
