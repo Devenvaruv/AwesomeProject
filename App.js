@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Button, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import axios from 'axios';
@@ -15,6 +15,8 @@ export default function App() {
   const [showCamera, setShowCamera] = useState(false);
   const [location, setLocation] = useState(null);
   const [page2, setPage2] = useState(false);
+  const [response, setResponse] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -32,41 +34,42 @@ export default function App() {
   }, []);
 
   const takePicture = async () => {
-    setPage2(true);
     if (camera && location) {
       const options = { quality: 0.5 };
       const data = await camera.takePictureAsync(options);
-
+  
       console.log(data);
       console.log(location.coords.latitude);
       console.log(location.coords.longitude);
-
-
-      //const response = await fetch(data.uri);
+  
       const uri = data.uri;
-      //const blob = await response.blob();
-
+  
       const body = new FormData();
       body.append('image', {
-        uri, 
+        uri,
         name: 'image.jpg',
         type: 'image/jpeg'
       });
-
-      // Including location data in the FormData
-      body.append( "latitude", location.coords.latitude);
-
-      body.append( "longitude", location.coords.longitude);
-
+  
+      body.append("latitude", location.coords.latitude);
+      body.append("longitude", location.coords.longitude);
+  
       
-
+  
       axios.post('http://10.50.72.44:5000/ocr', body, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
-      .then(response => console.log(response))
-      .catch(error => console.log(error));
+      .then(response => {
+        console.log(response.data);
+        setResponse(response.data);
+        setIsLoading(false); // Set loading state to false after receiving the response
+      })
+      .catch(error => {
+        console.log(error);
+        setIsLoading(false); // Set loading state to false in case of an error
+      });
     }
   };
 
@@ -86,25 +89,45 @@ export default function App() {
         <View style={{ width: squareSize, height: squareSize * 1.2, alignSelf: 'center' }}>
           <Camera style={styles.camera} type={type} ref={ref => setCamera(ref)}>
             <View style={styles.buttonContainer}>
-              <Button title="Flip Camera" onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)} />
-              <Button title="Click" onPress={takePicture} />
-              {/* <TouchableOpacity style={styles.button} onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)}
+              >
                 <Image source={require('./assets/flip-camera.png')} style={styles.buttonImage} />
-              </TouchableOpacity> */}
-              {/* <TouchableOpacity style={styles.button} onPress={takePicture}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => {
+                  // setPage2(true);
+                  // setIsLoading(true); // Set loading state to true before making the API request
+                  takePicture();
+                }}
+              >
                 <Image source={require('./assets/camera-icon.png')} style={styles.buttonImage} />
-              </TouchableOpacity> */}
+              </TouchableOpacity>
             </View>
           </Camera>
         </View>
       </View>
     );
-  } else if(page2) {
+  }else if (page2) {
     return (
-      <>
-      <h1>"Deven"</h1>
-      </>
-    )
+      <View style={styles.container}>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <Text style={styles.loadingText}>Loading...</Text>
+          </View>
+        ) : (
+          <View style={styles.responseContainer}>
+            {response ? (
+              <Text style={styles.responseText}>{response}</Text>
+            ) : (
+              <Text style={styles.responseText}>No data available</Text>
+            )}
+          </View>
+        )}
+      </View>
+    );
   }else {
     return (
       <View style={styles.mainContainer}>
@@ -115,6 +138,7 @@ export default function App() {
   }
 }
 
+// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -133,10 +157,51 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
+  button: {
+    padding: 10,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+  },
+  buttonImage: {
+    width: 40,
+    height: 40,
+  },
   mainContainer: {
     flex: 1,
     backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  responseText: {
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'center',
+    marginHorizontal: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#fff',
+  },
+  responseContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  responseText: {
+    fontSize: 18,
+    color: '#fff',
+    textAlign: 'center',
   },
 });
