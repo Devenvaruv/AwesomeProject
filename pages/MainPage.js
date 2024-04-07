@@ -29,6 +29,9 @@ export default function App() {
         setLocation(loc);
       }
     })();
+
+    // Set showCamera to true after component mounts
+    setShowCamera(true);
   }, []);
 
   const takePicture = async () => {
@@ -36,14 +39,7 @@ export default function App() {
       const options = { quality: 0.5 };
       const data = await camera.takePictureAsync(options);
 
-      console.log(data);
-      console.log(location.coords.latitude,);
-      console.log(location.coords.longitude);
-
-
-      //const response = await fetch(data.uri);
       const uri = data.uri;
-      //const blob = await response.blob();
 
       const body = new FormData();
       body.append('image', {
@@ -51,20 +47,17 @@ export default function App() {
         name: 'image.jpg',
         type: 'image/jpeg'
       });
-
-      // Including location data in the FormData
-      body.append( "latitude", location.coords.latitude);
-
-      body.append( "longitude", location.coords.longitude);
-
-      
+      body.append('latitude', location.coords.latitude);
+      body.append('longitude', location.coords.longitude);
 
       axios.post('http://10.50.72.44:5000/ocr', body, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
-      .then(response => console.log(response))
+      .then(response => {
+        console.log(response);
+      })
       .catch(error => console.log(error));
     }
   };
@@ -97,7 +90,6 @@ export default function App() {
     return (
       <View style={styles.mainContainer}>
         <Text>Welcome to the home page!</Text>
-        <Button title="Open Camera" onPress={() => setShowCamera(true)} />
       </View>
     );
   }
