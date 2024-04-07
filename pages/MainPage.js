@@ -1,6 +1,5 @@
-// Import necessary dependencies
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Button, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { Camera } from 'expo-camera';
 import * as Location from 'expo-location';
 import axios from 'axios';
@@ -93,8 +92,12 @@ export default function MainPage() {
         <View style={{ width: squareSize, height: squareSize * 1.2, alignSelf: 'center' }}>
           <Camera style={styles.camera} type={type} ref={ref => setCamera(ref)}>
             <View style={styles.buttonContainer}>
-              <Button title="Flip Camera" onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)} />
-              <Button title="Click " onPress={takePicture} />
+              <TouchableOpacity style={styles.button} onPress={() => setType(type === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back)}>
+                <Image source={require('../assets/flip-camera.png')} style={styles.buttonImage} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button} onPress={takePicture}>
+                <Image source={require('../assets/camera-icon.png')} style={styles.buttonImage} />
+              </TouchableOpacity>
             </View>
           </Camera>
         </View>
@@ -127,6 +130,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
+  },
+  button: {
+    padding: 10,
+    borderRadius: 30,
+    backgroundColor: '#fff',
+  },
+  buttonImage: {
+    width: 40,
+    height: 40,
   },
   mainContainer: {
     flex: 1,
